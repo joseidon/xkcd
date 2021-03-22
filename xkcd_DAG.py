@@ -8,3 +8,36 @@ from airflow.operators.hdfs_operations import HdfsPutFileOperator, HdfsGetFileOp
 from airflow.operators.filesystem_operations import CreateDirectoryOperator
 from airflow.operators.filesystem_operations import ClearDirectoryOperator
 from airflow.operators.hive_operator import HiveOperator
+
+
+args = {
+    'owner': 'airflow'
+}
+
+dag = DAG('IMDb', default_args=args, description='IMDb Import',
+          schedule_interval='56 18 * * *',
+          start_date=datetime(2019, 10, 16), catchup=False, max_active_runs=1)
+
+
+create_local_import_dir = CreateDirectoryOperator(
+    task_id='create_import_dir',
+    path='/home/airflow',
+    directory='imdb',
+    dag=dag,
+)
+
+clear_local_import_dir = ClearDirectoryOperator(
+    task_id='clear_import_dir',
+    directory='/home/airflow/imdb',
+    pattern='*',
+    dag=dag,
+)
+
+download_title_ratings = HttpDownloadOperator(
+    task_id='download_title_ratings',
+    download_uri='https://datasets.imdbws.com/title.ratings.tsv.gz',
+    save_to='/home/airflow/imdb/title.ratings_{{ ds }}.tsv.gz',
+    dag=dag,
+)
+
+create_local_import_dir >> clear_local_import_dir >> download_title_ratings
