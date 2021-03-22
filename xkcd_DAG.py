@@ -14,7 +14,7 @@ args = {
     'owner': 'airflow'
 }
 
-dag = DAG('IMDb', default_args=args, description='IMDb Import',
+dag = DAG('xkcd', default_args=args, description='xkcd practical exam',
           schedule_interval='56 18 * * *',
           start_date=datetime(2019, 10, 16), catchup=False, max_active_runs=1)
 
